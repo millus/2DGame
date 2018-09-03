@@ -19,6 +19,7 @@ var Player = function(id){
     x:250,
     y:250,
     id:id,
+    pic:"client/img/hellokitty.png",
     number: "" + Math.floor(10 * Math.random()),
     pressingRight:false,
     pressingLeft:false,
@@ -54,6 +55,10 @@ socket.on('disconnect', function(){
   delete PLAYER_LIST[socket.id];
 });
 
+socket.on('newColor', function(data){
+  player.pic = data.pic;
+});
+
   socket.on('keyPress', function(data){
     if(data.inputId === 'left')
       player.pressingLeft = data.state;
@@ -75,6 +80,7 @@ setInterval(function(){
       pack.push({
         x:player.x,
         y:player.y,
+        pic:player.pic,
         number:player.number
       });
     }

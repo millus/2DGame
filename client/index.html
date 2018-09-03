@@ -7,17 +7,20 @@ https://cdn.socket.io/socket.io-1.4.5.js">
 <script>
 var ctx = document.getElementById('ctx').getContext("2d");
 ctx.font = '30px Arial';
-var pic = new Image();
-pic.src= "client/img/hellokitty.png";
+
+
 
 
   var socket = io();
 
   socket.on('newPosition',function(data){
     ctx.clearRect(0,0,500,500);
-    for(var i=0; i < data.length; i++)
-    /*  ctx.fillText(data[i].number,data[i].x,data[i].y);*/
+    for(var i=0; i < data.length; i++){
+      var pic = new Image();
+      pic.src = data[i].pic;
+      ctx.fillText(data[i].number,data[i].x,data[i].y);
       ctx.drawImage(pic,data[i].x, data[i].y, 60, 60);
+    }
   });
 
   document.onkeydown = function (event) {
@@ -43,6 +46,23 @@ pic.src= "client/img/hellokitty.png";
   }
 
 
+function pickPlayer (color){
+  var pic = "";
+  if(color === "pink"){
+    pic = "client/img/hellokitty.png";
+  }else if(color === "blue"){
+    pic = "client/img/hellokittyblue.png";
+  }else {
+    console.log("Unknown color");
+  }
+  socket.emit('newColor',{pic:pic});
+
+}
+
+
 </script>
 
 <button onclick="happy()">Happy</button>
+
+<button onclick="pickPlayer('pink')">Pink</button>
+<button onclick="pickPlayer('blue')">Blue</button>
