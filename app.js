@@ -47,98 +47,80 @@ var Player = function(id){
     if(self.pressingDown)
       self.y +=self.maxSpd;
   }
+  self.updateDirection = function() {
+    if(self.pressingUp || self.pressingDown || self.pressingLeft || self.pressingRight){
+      if(self.pressingUp){
+        self.direction = upVal;
+      }else if(self.pressingDown){
+        self.direction = downVal;
+      }else if(self.pressingLeft){
+        self.direction = leftVal;
+      }else if(self.pressingRight){
+        self.direction = rightVal;
+      }
+      if (tickCount > ticksPerFrame) {
+        tickCount = 0;
+        if(self.frameIndex < numberOfFrames - 1){
+          self.frameIndex += 1; 
+        }else{
+          self.frameIndex = 0; 
+        }
+      }
+    }
+  }
   return self;
 }
 
 var io = require('socket.io') (serv,{});
 io.sockets.on('connection', function(socket){
-socket.id = Math.random();
-socket.x = 0;
-socket.y = 0;
-socket.number = "" + Math.floor(10 * Math.random());
-SOCKET_LIST[socket.id] = socket;
-var player = Player(socket.id);
-PLAYER_LIST[socket.id] = player;
+  socket.id = Math.random();
+  socket.x = 0;
+  socket.y = 0;
+  socket.number = "" + Math.floor(10 * Math.random());
+  SOCKET_LIST[socket.id] = socket;
+  var player = Player(socket.id);
+  PLAYER_LIST[socket.id] = player;
 
-socket.on('disconnect', function(){
-  delete SOCKET_LIST[socket.id];
-  delete PLAYER_LIST[socket.id];
-});
+  socket.on('disconnect', function(){
+    delete SOCKET_LIST[socket.id];
+    delete PLAYER_LIST[socket.id];
+  });
 
-socket.on('newColor', function(data){
-  player.pic = data.pic;
-});
+  socket.on('newColor', function(data){
+    player.pic = data.pic;
+  });
 
   socket.on('keyPress', function(data){
     if(data.inputId === 'left'){
       player.pressingLeft = data.state;
-      if(data.state){
-        player.direction = leftVal;
-      }
     }else if (data.inputId === 'right'){
       player.pressingRight = data.state;
-      if(data.state){
-        player.direction = rightVal;
-      }
     }else if (data.inputId === 'up'){
       player.pressingUp = data.state;
-      if(data.state){
-        player.direction = upVal;
-      }
     }else if (data.inputId === 'down'){
       player.pressingDown = data.state;
-      if(data.state){
-        player.direction = downVal;
-      }
     }
   });
-
 });
 
 setInterval(function(){
-    var pack = [];
-    tickCount += 1;
-
-    for(var i in PLAYER_LIST){
-     
-      var player = PLAYER_LIST[i];
-      player.updatePosition();
-      if(player.pressingUp || player.pressingDown || player.pressingLeft || player.pressingRight){
-        
-        if(player.pressingUp){
-          player.direction = upVal;
-        }else if(player.pressingDown){
-          player.direction = downVal;
-        }else if(player.pressingLeft){
-          player.direction = leftVal;
-        }else if(player.pressingRight){
-          player.direction = rightVal;
-        }
-
-        if (tickCount > ticksPerFrame) {
-          tickCount = 0;
-          if(player.frameIndex < numberOfFrames - 1){
-            player.frameIndex += 1; 
-          }else{
-            player.frameIndex = 0; 
-          }
-        }
-      }
-      pack.push({
-        x:player.x,
-        y:player.y,
-        pic:player.pic,
-        frameIndex:player.frameIndex,
-        direction:player.direction,
-        number:player.number
-      });
-    }
-    /*
-    
-    */
-    for(var i in SOCKET_LIST){
-      var socket = SOCKET_LIST[i];
-      socket.emit('newPosition',pack);
-    }
-
+  var pack = [];
+  tickCount += 1;
+  for(var i in PLAYER_LIST){
+    var player = PLAYER_LIST[i];
+    player.updatePosition();
+    player.updateDirection();
+    pack.push({
+      x:player.x,
+      y:player.y,
+      pic:player.pic,
+      frameIndex:player.frameIndex,
+      direction:player.direction,
+      number:player.number
+    });
+  }
+  for(var i in SOCKET_LIST){
+    var socket = SOCKET_LIST[i];
+    socket.emit('newPosition',pack);
+  }
 },1000/25);
