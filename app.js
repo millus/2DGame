@@ -13,13 +13,23 @@ console.log("Server started.");
 
 var SOCKET_LIST = {};
 var PLAYER_LIST = {};
+var frameIndex = 0;
+var tickCount = 0;
+var ticksPerFrame = 2;
+var numberOfFrames = 4;
+var upVal = 210;
+var downVal = 0;
+var leftVal = 70;
+var rightVal = 140;
 
 var Player = function(id){
   var self = {
-    x:250,
-    y:250,
+    x:0,
+    y:0,
     id:id,
-    pic:"client/img/hellokitty.png",
+    pic:"client/img/sprites.png",
+    direction:0,
+    frameIndex:0,
     number: "" + Math.floor(10 * Math.random()),
     pressingRight:false,
     pressingLeft:false,
@@ -60,30 +70,72 @@ socket.on('newColor', function(data){
 });
 
   socket.on('keyPress', function(data){
-    if(data.inputId === 'left')
+    if(data.inputId === 'left'){
       player.pressingLeft = data.state;
-    else if (data.inputId === 'right')
+      if(data.state){
+        player.direction = leftVal;
+      }
+    }else if (data.inputId === 'right'){
       player.pressingRight = data.state;
-    else if (data.inputId === 'up')
+      if(data.state){
+        player.direction = rightVal;
+      }
+    }else if (data.inputId === 'up'){
       player.pressingUp = data.state;
-    else if (data.inputId === 'down')
+      if(data.state){
+        player.direction = upVal;
+      }
+    }else if (data.inputId === 'down'){
       player.pressingDown = data.state;
+      if(data.state){
+        player.direction = downVal;
+      }
+    }
   });
 
 });
 
 setInterval(function(){
     var pack = [];
+    tickCount += 1;
+
     for(var i in PLAYER_LIST){
+     
       var player = PLAYER_LIST[i];
       player.updatePosition();
+      if(player.pressingUp || player.pressingDown || player.pressingLeft || player.pressingRight){
+        
+        if(player.pressingUp){
+          player.direction = upVal;
+        }else if(player.pressingDown){
+          player.direction = downVal;
+        }else if(player.pressingLeft){
+          player.direction = leftVal;
+        }else if(player.pressingRight){
+          player.direction = rightVal;
+        }
+
+        if (tickCount > ticksPerFrame) {
+          tickCount = 0;
+          if(player.frameIndex < numberOfFrames - 1){
+            player.frameIndex += 1; 
+          }else{
+            player.frameIndex = 0; 
+          }
+        }
+      }
       pack.push({
         x:player.x,
         y:player.y,
         pic:player.pic,
+        frameIndex:player.frameIndex,
+        direction:player.direction,
         number:player.number
       });
     }
+    /*
+    
+    */
     for(var i in SOCKET_LIST){
       var socket = SOCKET_LIST[i];
       socket.emit('newPosition',pack);
