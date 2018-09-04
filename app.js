@@ -13,10 +13,11 @@ console.log("Server started.");
 
 var SOCKET_LIST = {};
 var PLAYER_LIST = {};
-var frameIndex = 0;
+
 var tickCount = 0;
 var ticksPerFrame = 2;
 var numberOfFrames = 4;
+
 var upVal = 210;
 var downVal = 0;
 var leftVal = 70;
