@@ -15,7 +15,10 @@ var SOCKET_LIST = {};
 var PLAYER_LIST = {};
 
 var tickCount = 0;
-var ticksPerFrame = 2;
+var ticksPerFrame = 3;
+var runTicsPerFrame = 1;
+var walkTicsPerFrame = 3;
+
 var numberOfFrames = 4;
 
 var upVal = 210;
@@ -26,9 +29,9 @@ var rightVal = 140;
 var Player = function(id){
   var self = {
     x:0,
-    y:0,
+    y:20,
     id:id,
-    pic:"client/img/sprites.png",
+    pic:"client/img/spriteshurt.png",
     direction:0,
     frameIndex:0,
     number: "" + Math.floor(10 * Math.random()),
@@ -36,17 +39,32 @@ var Player = function(id){
     pressingLeft:false,
     pressingUp:false,
     pressingDown:false,
-    maxSpd:10,
+    run:false,
+    runSpeed:15,
+    walkSpeed:7,
+    actualSpeed:7,
   }
   self.updatePosition = function() {
-    if(self.pressingRight)
-      self.x +=self.maxSpd;
-    if(self.pressingLeft)
-      self.x -=self.maxSpd;
-    if(self.pressingUp)
-      self.y -=self.maxSpd;
-    if(self.pressingDown)
-      self.y +=self.maxSpd;
+    if(self.pressingRight){
+      self.x +=self.actualSpeed;
+    }
+    if(self.pressingLeft){
+      self.x -=self.actualSpeed;
+    }
+    if(self.pressingUp){
+      self.y -=self.actualSpeed;
+    }
+    if(self.pressingDown){
+      self.y +=self.actualSpeed;
+    }
+    if(self.run){
+      self.actualSpeed = self.runSpeed;
+      ticksPerFrame = runTicsPerFrame;
+    }else{
+      self.actualSpeed = self.walkSpeed;
+      ticksPerFrame = walkTicsPerFrame;
+    }
+    
   }
   self.updateDirection = function() {
     if(self.pressingUp || self.pressingDown || self.pressingLeft || self.pressingRight){
@@ -100,6 +118,9 @@ io.sockets.on('connection', function(socket){
       player.pressingUp = data.state;
     }else if (data.inputId === 'down'){
       player.pressingDown = data.state;
+    }
+    if (data.inputId === 'run'){
+      player.run = data.state;
     }
   });
 });
