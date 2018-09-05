@@ -1,36 +1,44 @@
-
 var ctx = document.getElementById('ctx').getContext("2d");
-ctx.font = '30px Arial';
+ctx.font = '30px Arial'
 
 var numberOfFrames = 4;
 var numberOfRows = 4;
-var imageSizeX = 224;
-var imageSizeY = 280; 
-var HEIGHT = 1000;
-var WIDTH = 1500;
+var imageSizeX = 112;
+var imageSizeY = 140; 
 
 var socket = io();
 
-socket.on('newPosition',function(data){
-  ctx.clearRect(0,0,WIDTH,HEIGHT);
+function redrawCanvas(){
+    ctx.clearRect(0,0,ctx.canvas.width, ctx.canvas.height);
+    if(ctx.canvas.width  !== Math.round(window.innerWidth*0.8)){
+        ctx.canvas.width  = window.innerWidth*0.8;
+    }
+    if(ctx.canvas.height !== Math.round(window.innerHeight*0.9)){
+        ctx.canvas.height = window.innerHeight*0.9;
+    }
     ctx.fillStyle = "white";
-    ctx.fillRect(0, 0, WIDTH, HEIGHT);
-  for(var i=0; i < data.length; i++){
+    ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+}
+
+socket.on('newPosition',function(data){
+    redrawCanvas();
+    for(var i = 0; i < data.length; i++){
     var pic = new Image();
     pic.src = data[i].pic;
+    ctx.fillStyle = "black";
     ctx.fillText(data[i].number,data[i].x+7,data[i].y+7);
     ctx.drawImage(
-      pic,
-      data[i].frameIndex * pic.width / numberOfFrames, 
-      data[i].direction, 
-      pic.width / numberOfFrames, 
-      pic.height / numberOfRows,
-      data[i].x, 
-      data[i].y, 
-      imageSizeX, 
-      imageSizeY
-      );
-  }
+        pic,
+        data[i].frameIndex * pic.width / numberOfFrames, 
+        data[i].direction, 
+        pic.width / numberOfFrames, 
+        pic.height / numberOfRows,
+        data[i].x, 
+        data[i].y, 
+        imageSizeX, 
+        imageSizeY
+        );
+    }
 });
 
 document.onkeydown = function (event) {
